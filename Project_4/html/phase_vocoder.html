@@ -1,0 +1,384 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>phase_vocoder</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-11-30"><meta name="DC.source" content="phase_vocoder.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Skylar Tamke, Homework 4 - wrapper file</a></li><li><a href="#2">Plotting - commented out since this wasn't needed for deliverable</a></li><li><a href="#3">Playback</a></li></ul></div><h2 id="1">Skylar Tamke, Homework 4 - wrapper file</h2><p>The most I can expand my TIMIT wave is by 5 times its original playback speed.  Alternatively I can shrink my TIMIT wave by 2.2 times before it runs too fast for me to understand.</p><pre class="codeinput"><span class="comment">% A phase phase vocoder is a tool used to compress or expand an audio wave</span>
+<span class="comment">% so that changes in playback speed result in the same pitch output.</span>
+<span class="comment">% Meaning that if you playback the audio at a faster rate you should be</span>
+<span class="comment">% able to hear the same pitch as the original rather then what normally</span>
+<span class="comment">% happens, which is the pitch increases and sounds like a tiny person.</span>
+clc
+clear
+
+warning(<span class="string">'off'</span>,<span class="string">'all'</span>)
+
+<span class="comment">%file that says 'Artificial intelligence is for real.'</span>
+filename = <span class="string">'SX29.WAV'</span>;
+phntable = readtable(<span class="string">"SX29phoneam.txt"</span>);
+
+<span class="comment">%code provided on handout by Snider</span>
+fid = fopen(filename,<span class="string">'r'</span>);
+status = fseek(fid, 1024, -1);
+[wave,count] = fread(fid,inf,<span class="string">'int16'</span>);
+fclose(fid);
+Fs = 16000;
+
+<span class="comment">%to change the wave length into a nice number to divide into</span>
+count = length(wave)-3;
+
+<span class="comment">% Change this to change playback speed (how many time faster</span>
+<span class="comment">% playbackspeed = .2          % slowest</span>
+playbackspeed = 2.2             <span class="comment">% fastest</span>
+
+<span class="comment">% Determining playback speed</span>
+SynthesisLen = floor(128*(1/playbackspeed));
+
+
+WindowLen = 256;
+AnalysisLen = 64;
+Hopratio = SynthesisLen/(WindowLen/2);
+
+numWindows = 316;
+windowSize = 256;
+
+<span class="comment">%as of Ross's recommendation this only needs to be around 16</span>
+coefCount = 16;                                             <span class="comment">%how many coef per section, will probably go up for end result</span>
+
+
+Clength = windowSize;
+tempcoefCount = coefCount;
+
+windows = zeros(numWindows,windowSize);
+h = zeros(numWindows,(Clength-coefCount),coefCount);
+b = [];                                                                     <span class="comment">%if the number of coefficients change this does too, so b and h have equal m vs n lengths</span>
+atotal_ls = zeros(numWindows,coefCount);
+
+windows(1,:) = wave(1:windowSize);                   <span class="comment">%overlapping windows for each section</span>
+windowOverlap = floor(windowSize/2);                <span class="comment">%floor to keep safe,</span>
+
+<span class="comment">% Create a vector of overlapping windows</span>
+<span class="comment">% This part is important since if this is done improperly the output will</span>
+<span class="comment">% sound choppy.  If the windows are not overlapped the output will only</span>
+<span class="comment">% show the changes between the phoneams, which is where the choppyness</span>
+<span class="comment">% comes from.  When the windows are overlapped and combined correctly later</span>
+<span class="comment">% the windows will blend the changes together keeping some of the</span>
+<span class="comment">% choppyness out.</span>
+<span class="keyword">for</span> i = 1:numWindows
+    <span class="keyword">if</span> i-1 == 0
+        windows(i,:) = wave(1:windowSize);
+    <span class="keyword">else</span>
+        windows(i,:) = wave(((i-1)*windowOverlap+1):(((i-1)*windowOverlap)+windowSize));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+fftwindows = [];
+windowWeight = window(@hanning,windowSize);
+
+
+yprevwin = zeros(1,WindowLen-SynthesisLen);
+gain = 1/(WindowLen*sum(hanning(WindowLen,<span class="string">'periodic'</span>).^2)/SynthesisLen);
+unwrapdata = 2*pi*AnalysisLen*(0:WindowLen-1)'/WindowLen;
+firsttime = true;
+
+ysangle = zeros(numWindows,WindowLen);
+yunwrap = zeros(numWindows,WindowLen);
+yprevangle = zeros(numWindows,WindowLen);
+yangle = zeros(numWindows,WindowLen);
+
+
+
+<span class="keyword">for</span> i = 1:numWindows
+   fft_windows(i,:) = fft(windows(i,:));
+   ymag(i,:) = abs(fft_windows(i,:));
+   <span class="keyword">if</span> i == 1
+       yprevangle(i,:) = yprevangle(i,:);
+   <span class="keyword">else</span>
+       yprevangle(i,:) = yangle(i,:);
+   <span class="keyword">end</span>
+   yangle(i,:) = angle(fft_windows(i,:));
+   yunwrap(i,:) = (yangle(i,:) - yprevangle(i,:)) - unwrapdata';
+   yunwrap(i,:) = yunwrap(i,:) - round(yunwrap(i,:)/(2*pi))*2*pi;
+   yunwrap(i,:) = (yunwrap(i,:) + unwrapdata') * Hopratio;
+
+   <span class="keyword">if</span> i == 1
+       ysangle(i,:) = yangle(i,:);
+
+   <span class="keyword">else</span>
+       ysangle(i,:) = ysangle(i,:) + yunwrap(i,:);
+   <span class="keyword">end</span>
+   ys(i,:) = ymag(i,:) .* complex(cos(ysangle(i,:)), sin(ysangle(i,:)));
+   ywin(i,:) = real(ifft(ys(i,:)));
+<span class="keyword">end</span>
+
+
+
+winWeightSize = windowSize;
+windowWeight = window(@hanning,windowSize);
+
+outputlen = round(count*(SynthesisLen/windowOverlap))+1
+
+output = zeros(outputlen,1);
+
+<span class="keyword">for</span> i = 1:numWindows-10
+    <span class="keyword">if</span> i == 1
+        output(1:length(ywin(i,:))) = ywin(i,:)' .* windowWeight;
+    <span class="keyword">else</span>
+        start = (i-1)*SynthesisLen;
+        stop = start + windowSize-1;
+        initial = output(start:stop) .* windowWeight;
+        convolution = ywin(i,:)' .* windowWeight;
+        out = initial + convolution;
+        output(start:stop) = out;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+output(:) .*gain;
+</pre><pre class="codeoutput">
+playbackspeed =
+
+    2.2000
+
+
+outputlen =
+
+       18421
+
+</pre><h2 id="2">Plotting - commented out since this wasn't needed for deliverable</h2><p>just a plot of the original wave and the resulting waveform after the process</p><p>figure(1) hold off plot(wave,'b') hold on plot(output,'r') hold off</p><p>legend("original wave","shrunken wave") title("Phase vocoder")</p><pre class="codeinput">newFs = Fs*(1/(Hopratio));
+</pre><h2 id="3">Playback</h2><p>sounds are played back at the new sample rate to show difference</p><pre class="codeinput">soundsc(output,Fs)
+<span class="comment">% pause(5)</span>
+<span class="comment">% soundsc(wave,newFs)</span>
+
+
+fileout1 = <span class="string">'phase_vocoder_output_fastest.wav'</span>;
+audiowrite(fileout1,output, Fs);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Skylar Tamke, Homework 4 - wrapper file
+% The most I can expand my TIMIT wave is by 5 times its original playback
+% speed.  Alternatively I can shrink my TIMIT wave by 2.2 times before it
+% runs too fast for me to understand.
+
+% A phase phase vocoder is a tool used to compress or expand an audio wave
+% so that changes in playback speed result in the same pitch output.
+% Meaning that if you playback the audio at a faster rate you should be
+% able to hear the same pitch as the original rather then what normally
+% happens, which is the pitch increases and sounds like a tiny person.
+clc
+clear
+
+warning('off','all')
+
+%file that says 'Artificial intelligence is for real.'
+filename = 'SX29.WAV';
+phntable = readtable("SX29phoneam.txt");
+
+%code provided on handout by Snider
+fid = fopen(filename,'r');
+status = fseek(fid, 1024, -1);
+[wave,count] = fread(fid,inf,'int16');
+fclose(fid);
+Fs = 16000;
+
+%to change the wave length into a nice number to divide into
+count = length(wave)-3;
+
+% Change this to change playback speed (how many time faster
+% playbackspeed = .2          % slowest
+playbackspeed = 2.2             % fastest
+
+% Determining playback speed
+SynthesisLen = floor(128*(1/playbackspeed));
+
+
+WindowLen = 256;
+AnalysisLen = 64;
+Hopratio = SynthesisLen/(WindowLen/2);
+
+numWindows = 316;
+windowSize = 256;
+
+%as of Ross's recommendation this only needs to be around 16
+coefCount = 16;                                             %how many coef per section, will probably go up for end result
+
+
+Clength = windowSize;
+tempcoefCount = coefCount;
+
+windows = zeros(numWindows,windowSize);
+h = zeros(numWindows,(Clength-coefCount),coefCount);
+b = [];                                                                     %if the number of coefficients change this does too, so b and h have equal m vs n lengths
+atotal_ls = zeros(numWindows,coefCount);
+
+windows(1,:) = wave(1:windowSize);                   %overlapping windows for each section
+windowOverlap = floor(windowSize/2);                %floor to keep safe,
+
+% Create a vector of overlapping windows
+% This part is important since if this is done improperly the output will
+% sound choppy.  If the windows are not overlapped the output will only
+% show the changes between the phoneams, which is where the choppyness
+% comes from.  When the windows are overlapped and combined correctly later
+% the windows will blend the changes together keeping some of the
+% choppyness out.
+for i = 1:numWindows
+    if i-1 == 0
+        windows(i,:) = wave(1:windowSize);
+    else
+        windows(i,:) = wave(((i-1)*windowOverlap+1):(((i-1)*windowOverlap)+windowSize));
+    end
+end
+
+fftwindows = [];
+windowWeight = window(@hanning,windowSize);
+
+
+yprevwin = zeros(1,WindowLen-SynthesisLen);
+gain = 1/(WindowLen*sum(hanning(WindowLen,'periodic').^2)/SynthesisLen);
+unwrapdata = 2*pi*AnalysisLen*(0:WindowLen-1)'/WindowLen;
+firsttime = true;
+
+ysangle = zeros(numWindows,WindowLen);
+yunwrap = zeros(numWindows,WindowLen);
+yprevangle = zeros(numWindows,WindowLen);
+yangle = zeros(numWindows,WindowLen);
+
+
+
+for i = 1:numWindows
+   fft_windows(i,:) = fft(windows(i,:));
+   ymag(i,:) = abs(fft_windows(i,:));
+   if i == 1
+       yprevangle(i,:) = yprevangle(i,:);
+   else
+       yprevangle(i,:) = yangle(i,:);
+   end
+   yangle(i,:) = angle(fft_windows(i,:));
+   yunwrap(i,:) = (yangle(i,:) - yprevangle(i,:)) - unwrapdata';
+   yunwrap(i,:) = yunwrap(i,:) - round(yunwrap(i,:)/(2*pi))*2*pi;
+   yunwrap(i,:) = (yunwrap(i,:) + unwrapdata') * Hopratio;
+
+   if i == 1
+       ysangle(i,:) = yangle(i,:);
+
+   else
+       ysangle(i,:) = ysangle(i,:) + yunwrap(i,:);
+   end
+   ys(i,:) = ymag(i,:) .* complex(cos(ysangle(i,:)), sin(ysangle(i,:)));
+   ywin(i,:) = real(ifft(ys(i,:)));
+end
+
+
+
+winWeightSize = windowSize;
+windowWeight = window(@hanning,windowSize);
+
+outputlen = round(count*(SynthesisLen/windowOverlap))+1
+
+output = zeros(outputlen,1);
+
+for i = 1:numWindows-10
+    if i == 1
+        output(1:length(ywin(i,:))) = ywin(i,:)' .* windowWeight;
+    else
+        start = (i-1)*SynthesisLen;
+        stop = start + windowSize-1;
+        initial = output(start:stop) .* windowWeight;
+        convolution = ywin(i,:)' .* windowWeight;
+        out = initial + convolution;
+        output(start:stop) = out;
+    end
+end
+output(:) .*gain;
+
+%% Plotting - commented out since this wasn't needed for deliverable
+% just a plot of the original wave and the resulting waveform after the
+% process
+% 
+% figure(1)
+% hold off
+% plot(wave,'b')
+% hold on
+% plot(output,'r')
+% hold off
+% 
+% legend("original wave","shrunken wave")
+% title("Phase vocoder")
+% 
+
+
+newFs = Fs*(1/(Hopratio));
+
+%% Playback
+% sounds are played back at the new sample rate to show difference
+soundsc(output,Fs)
+% pause(5)
+% soundsc(wave,newFs)
+
+
+fileout1 = 'phase_vocoder_output_fastest.wav';
+audiowrite(fileout1,output, Fs);
+
+##### SOURCE END #####
+--></body></html>

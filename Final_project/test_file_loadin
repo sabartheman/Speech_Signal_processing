@@ -1,0 +1,6 @@
+
+wavfiles = dir("*.WAV")
+phnfiles = dir("*.PHN")
+
+
+height(wavfiles)
